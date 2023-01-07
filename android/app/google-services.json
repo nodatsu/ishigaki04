@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "887390408274",
+    "project_id": "calendarishigaki",
+    "storage_bucket": "calendarishigaki.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:887390408274:android:ffdfe22deac69a3de1598b",
+        "android_client_info": {
+          "package_name": "com.example.ishigaki04"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "887390408274-ff6ikao7ua1667jvfk89jkirb0au0agc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC9x3iG5eK3fzlkkS0DGhWD0eH5b5w2GfM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "887390408274-ff6ikao7ua1667jvfk89jkirb0au0agc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
