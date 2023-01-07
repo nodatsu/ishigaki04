@@ -28,19 +28,19 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   late CollectionReference cref;
+  late AppointmentDataSource dataSource;
 
   @override
   void initState() {
     super.initState();
     cref = FirebaseFirestore.instance.collection('schedule');
+    dataSource = getCalendarDataSource();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text('日程調整用カレンダ')),
-        body: buildBody(context)
-    );
+        appBar: AppBar(title: Text('日程調整用カレンダ')), body: buildBody(context));
   }
 
   Widget buildBody(BuildContext context) {
@@ -57,12 +57,27 @@ class _MyHomePageState extends State<MyHomePage> {
           print(elem.get('end_time').toDate().toLocal().toString());
         });
         print("##################################################### Firestore Access end");
+
+        dataSource.appointments!.clear(); // 現在の予定を一旦すべて消去
+        snapshot.data!.docs.forEach((elem) {
+          dataSource.appointments!.add(Appointment(
+            startTime: elem.get('start_time').toDate().toLocal(),
+            endTime: elem.get('end_time').toDate().toLocal(),
+            subject: elem.get('subject'),
+            color: Colors.blue,
+            startTimeZone: '',
+            endTimeZone: '',
+          ));
+        });
+        dataSource.notifyListeners(CalendarDataSourceAction.reset, dataSource.appointments!); // カレンダの再描画
+
         return Column(
           children: [
             Expanded(
-                child: SfCalendar(
-                  view: CalendarView.month,
-                ),
+              child: SfCalendar(
+                view: CalendarView.week,
+                dataSource: dataSource,
+              ),
             ),
             OutlinedButton(
               onPressed: () {
@@ -72,12 +87,24 @@ class _MyHomePageState extends State<MyHomePage> {
                   'start_time': DateTime.now().add(Duration(hours: 1)),
                   'end_time': DateTime.now().add(Duration(hours: 3)),
                 });
-                },
+              },
               child: Text('ぼたん'),
             ),
           ],
         );
       },
     );
+  }
+
+  AppointmentDataSource getCalendarDataSource() {
+    List<Appointment> appointments = <Appointment>[];
+
+    return AppointmentDataSource(appointments);
+  }
+}
+
+class AppointmentDataSource extends CalendarDataSource {
+  AppointmentDataSource(List<Appointment> source) {
+    appointments = source;
   }
 }
