@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Baby Names',
+      title: 'カレンダアプリ',
       home: MyHomePage(),
     );
   }
@@ -27,24 +27,34 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  late CollectionReference cref;
+
+  @override
+  void initState() {
+    super.initState();
+    cref = FirebaseFirestore.instance.collection('schedule');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text('Baby Name Votes')),
+        appBar: AppBar(title: Text('日程調整用カレンダ')),
         body: buildBody(context)
     );
   }
 
   Widget buildBody(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('baby').snapshots(),
+      stream: cref.snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return LinearProgressIndicator();
 
         print("##################################################### Firestore Access start");
         snapshot.data!.docs.forEach((elem) {
-          print(elem.get('name'));
-          print(elem.get('votes'));
+          print(elem.get('email'));
+          print(elem.get('subject'));
+          print(elem.get('start_time').toDate().toLocal().toString());
+          print(elem.get('end_time').toDate().toLocal().toString());
         });
         print("##################################################### Firestore Access end");
         return Column(
@@ -56,7 +66,12 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             OutlinedButton(
               onPressed: () {
-                snapshot.data!.docs[0].reference.update({'votes': FieldValue.increment(1)});
+                cref.add({
+                  'email': 'test03@gmail.com',
+                  'subject': '予定3',
+                  'start_time': DateTime.now().add(Duration(hours: 1)),
+                  'end_time': DateTime.now().add(Duration(hours: 3)),
+                });
                 },
               child: Text('ぼたん'),
             ),
