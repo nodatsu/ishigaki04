@@ -38,6 +38,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   late CollectionReference cref;
   late AppointmentDataSource dataSource;
+  GoogleSignInAccount? currentUser;
 
   final GoogleSignIn googleSignIn = GoogleSignIn(
     scopes: <String>[CalendarApi.calendarScope],
@@ -49,7 +50,12 @@ class _MyHomePageState extends State<MyHomePage> {
     cref = FirebaseFirestore.instance.collection('schedule');
     dataSource = getCalendarDataSource();
 
-    googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) {});
+    googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) {
+      setState(() {
+        currentUser = account;
+        print('########## currentUser ' + currentUser.toString() ?? 'NULL');
+      });
+    });
     googleSignIn.signInSilently();
   }
 
@@ -67,6 +73,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
         print("########## Firestore Access start");
         snapshot.data!.docs.forEach((elem) {
+          print(elem.id);
           print(elem.get('email'));
           print(elem.get('subject'));
           print(elem.get('start_time').toDate().toLocal().toString());
@@ -97,14 +104,28 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             OutlinedButton(
-              onPressed: () {
-                // cref.add({
-                //   'email': 'test03@gmail.com',
-                //   'subject': '予定3',
-                //   'start_time': DateTime.now().add(Duration(hours: 1)),
-                //   'end_time': DateTime.now().add(Duration(hours: 3)),
-                // });
-                getGoogleEventsData();
+              onPressed: () async {
+                List<Event> events = await getGoogleEventsData();
+
+                if (currentUser == null) return;
+
+                final QuerySnapshot userEvents = await cref
+                    .where('email', isEqualTo: currentUser!.email)
+                    .get();
+                userEvents.docs.forEach((element) {
+                  cref.doc(element.id).delete();
+                });
+
+                events.forEach((element) {
+                  cref.add({
+                    'email': (currentUser!.email),
+                    'subject': (element.summary),
+                    'start_time': (element.start!.date ??
+                        element.start!.dateTime!.toLocal()),
+                    'end_time':
+                        (element.end!.date ?? element.end!.dateTime!.toLocal()),
+                  });
+                });
               },
               child: Text('ぼたん'),
             ),
@@ -135,12 +156,14 @@ class _MyHomePageState extends State<MyHomePage> {
         if (event.start == null) {
           continue;
         }
-        print('########## email: ' + (googleUser.email).toString());
-        print('########## start-time: ' +
+        print("########## Google Calendar Access start");
+        print('email: ' + (googleUser.email).toString());
+        print('subject: ' + (event.summary).toString());
+        print('start-time: ' +
             (event.start!.date ?? event.start!.dateTime!.toLocal()).toString());
-        print('########## end-time: ' +
+        print('end-time: ' +
             (event.end!.date ?? event.end!.dateTime!.toLocal()).toString());
-        print('########## subject: ' + (event.summary).toString());
+        print("########## Google Calendar Access start");
         appointments.add(event);
       }
     }
