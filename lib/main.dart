@@ -82,16 +82,30 @@ class _MyHomePageState extends State<MyHomePage> {
         print("########## Firestore Access end");
 
         dataSource.appointments!.clear(); // 現在の予定を一旦すべて消去
+        final List<Color> cols = [
+          Colors.amber,
+          Colors.lime,
+          Colors.blueGrey
+        ];
+        Map<String, Color> colorMap = new Map<String, Color>();
+        int colorSeq = 0;
         snapshot.data!.docs.forEach((elem) {
+          if (!colorMap.containsKey(elem.get('email'))) {
+            colorMap[elem.get('email')] = cols[colorSeq % cols.length];
+            colorSeq++;
+          }
           dataSource.appointments!.add(Appointment(
             startTime: elem.get('start_time').toDate().toLocal(),
             endTime: elem.get('end_time').toDate().toLocal(),
             subject: elem.get('subject'),
-            color: Colors.blue,
+            color: colorMap[elem.get('email')] ?? Colors.black,
             startTimeZone: '',
             endTimeZone: '',
           ));
         });
+        print('############# colorMap');
+        print(colorMap);
+        print('############# colorMap');
         dataSource.notifyListeners(CalendarDataSourceAction.reset,
             dataSource.appointments!); // カレンダの再描画
 
