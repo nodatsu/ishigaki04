@@ -18,37 +18,38 @@ void main() async {
   runApp(MyApp());
 }
 
+late CollectionReference cref;
+GoogleSignInAccount? currentUser;
+
+final GoogleSignIn googleSignIn = GoogleSignIn(
+  scopes: <String>[CalendarApi.calendarScope],
+);
+
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'カレンダアプリ',
-      home: MyHomePage(),
+      home: LoginPage(),
+      // home: MyHomePage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
+class LoginPage extends StatefulWidget {
   @override
-  _MyHomePageState createState() {
-    return _MyHomePageState();
+  LoginPageState createState() {
+    // return MyHomePageState();
+    return LoginPageState();
   }
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  late CollectionReference cref;
-  late AppointmentDataSource dataSource;
-  GoogleSignInAccount? currentUser;
-
-  final GoogleSignIn googleSignIn = GoogleSignIn(
-    scopes: <String>[CalendarApi.calendarScope],
-  );
-
+class LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
     cref = FirebaseFirestore.instance.collection('schedule');
-    dataSource = getCalendarDataSource();
+    // dataSource = getCalendarDataSource();
 
     googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) {
       setState(() {
@@ -57,6 +58,47 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     });
     googleSignIn.signInSilently();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('日程調整用カレンダ')),
+      body: OutlinedButton(
+        child: Text('ページ移動'),
+        onPressed: (){
+          Navigator.push(context, MaterialPageRoute(
+              builder: (context) => MyHomePage(),
+          ));
+        },
+      ),
+    );
+  }
+}
+
+class MyHomePage extends StatefulWidget {
+  @override
+  MyHomePageState createState() {
+    return MyHomePageState();
+  }
+}
+
+class MyHomePageState extends State<MyHomePage> {
+  late AppointmentDataSource dataSource;
+
+  @override
+  void initState() {
+    super.initState();
+    // cref = FirebaseFirestore.instance.collection('schedule');
+    dataSource = getCalendarDataSource();
+
+    // googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) {
+    //   setState(() {
+    //     currentUser = account;
+    //     print('########## currentUser ' + currentUser.toString() ?? 'NULL');
+    //   });
+    // });
+    // googleSignIn.signInSilently();
   }
 
   @override
